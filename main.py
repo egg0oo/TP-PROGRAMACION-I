@@ -1,13 +1,60 @@
 # JUEGO DE ROL: EL LEGADO PERDIDO
+# REPOSITORIO: https://github.com/egg0oo/TP-PROGRAMACION-I
+
+# ASPECTOS A REVISAR.
+# * Separar la función turno_jugador en funciones para cada uno de los personajes y tal vez hacer que sus ataques varien (que el tanque tenga menos daño y el arquero mas)
+# * Revisar que se pueda ingresar "Pocion", sin tilde.
+# * Definir un número límitado de items.
+# * Revisar matriz con daño infligido por cada personaje, por cada combate.
+# * Agregar módulo(s).
+# * Al final, revisar PRESENTACIÓN VISUAL resumiendo el objetivo del trabajo, funcionamiento general y elementos usados, etc.
 
 import random
 
-def verificar_nombre(nombre):
-    while not nombre.isalpha():
-        print("El nombre debe estar únicamente compuesto por letras.")
-        nombre = input("Intenta nuevamente: ")
-    nombre = nombre.upper()
-    return nombre
+#por compresion
+#usar slicing para copiar lista de hp 
+
+
+def verificarnombre():
+    tan = input("TANQUE: ")
+    while not (tan.isalpha()):
+        print("El nombre del TANQUE debe estar Ãºnicamente compuesto por letras.")
+        tan = input("Intenta nuevamente: ")
+    bru = input("BRUJO: ")
+    while not (bru.isalpha()):
+        print("El nombre del BRUJO debe estar Ãºnicamente compuesto por letras.")
+        bru = input("Intenta nuevamente: ")
+    ar = input("ARQUERO: ")
+    while not (ar.isalpha()):
+        print("El nombre del ARQUERO debe estar Ãºnicamente compuesto por letras.")
+        ar = input("Intenta nuevamente: ")
+    Mayusculas = lambda a, b, c: (a.upper(), b.upper(), c.upper())
+    tan, bru, ar = Mayusculas(tan, bru, ar)
+    return tan, bru, ar
+
+def listardeudor(matriz,cf,cc):
+    
+    
+    print("                            ")
+    print("Personajes/enemigos",end="")
+    for i in range (1,cc+1):
+        print("%7d" %(i), end=" ")
+    print()
+    
+    for i in range(cf):
+        texto= "Personaje "+str(i+1)+"        "
+        print("%7s" %(texto),end="")
+        for j in range(cc):
+            print("%7s" %(matriz[i][j]),end=" ")
+        print()
+
+
+
+def InicializarMatriz(matriz,cf,cc):
+    for i in range(cf):
+        matriz.append([])
+        for j in range (cc):
+            matriz[i].append('x')
 
 def ataque():
     daño = random.randint(60, 100)
@@ -87,15 +134,10 @@ def ataque_enemigo(enemigos, enemigo_index, jugadores, jugadores_hp):
     return jugadores_hp
 
 def main():
-    print("Nombra a tus personajes. Solo se permiten caracteres alfabéticos.")
-    n = input("TANQUE: ")
-    tanque = verificar_nombre(n)
-    n = input("BRUJO: ")
-    brujo = verificar_nombre(n)
-    n = input("ARQUERO: ")
-    arquero = verificar_nombre(n)
-    
-    print(f"Tus personajes son {tanque}, {brujo} y {arquero}")
+    print("Nombra a tus personajes. Solo se permiten caracteres alfabeticos.")
+    tanque, brujo, arquero = verificarnombre()
+
+    print(f"Tus personajes son {tanque}, {brujo} y {arquero}",sep="")
     
     # Vida de los personajes
     TANQUE_HP = 350
