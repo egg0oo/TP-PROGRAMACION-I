@@ -14,7 +14,7 @@ def ataque():
     daño = random.randint(40, 80)
     return daño
 
-def turno_tanque(tanque): #REVISAR!
+def turno_tanque(tanque,TANQUE_HP,ENEMIGO_HP): #REVISAR!
     print(f"TURNO DE {tanque}")
     print("Atacar - Bloquear - Items")
     accion = input(f"Qué hará {tanque}?:").capitalize()
@@ -65,7 +65,7 @@ def main():
     print("Se acerca un enemigo")
     
     while ENEMIGO_HP > 0:
-        daño = turno_tanque(tanque)
+        daño = turno_tanque(tanque,TANQUE_HP,ENEMIGO_HP)
         ENEMIGO_HP -= daño
         print(daño)
         print(f"ENEMIGO: {ENEMIGO_HP})")
