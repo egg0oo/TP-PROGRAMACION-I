@@ -59,15 +59,10 @@ def turno_jugador(jugador, jugador_hp, hp_enemigo):
     return hp_enemigo, jugador_hp
 
 def main():
-    print("Nombra a tus personajes. Solo se permiten caracteres alfabéticos.")
-    n = input("TANQUE: ")
-    tanque = verificar_nombre(n)
-    n = input("BRUJO: ")
-    brujo = verificar_nombre(n)
-    n = input("ARQUERO: ")
-    arquero = verificar_nombre(n)
-    
-    print(f"Tus personajes son {tanque}, {brujo} y {arquero}")
+    print("Nombra a tus personajes. Solo se permiten caracteres alfabeticos.")
+    tan, bru, ar = verificarnombre()
+
+    print(f"Tus personajes son {tan}, {bru} y {ar}",sep="")
     
     # Vida de los personajes
     TANQUE_HP = 350
