@@ -1,11 +1,6 @@
+from verificacion import verificar_nombre
+from estado import mostrar_estado
 import random
-
-def verificar_nombre(nombre):
-    while not nombre.isalpha():
-        print("El nombre debe estar únicamente compuesto por letras.")
-        nombre = input("Intenta nuevamente: ")
-    nombre = nombre.upper()
-    return nombre
 
 def ataque():
     daño = random.randint(60, 100)
@@ -51,13 +46,6 @@ def turno_jugador(jugador, jugador_hp, hp_enemigo, hp_maximo):
         jugador_hp, hp_enemigo = usar_item(jugador, jugador_hp, hp_enemigo, hp_maximo)
     
     return hp_enemigo, jugador_hp
-
-def mostrar_estado(jugadores, jugadores_hp, enemigos, enemigos_hp, enemigo_index):
-    print("===== ESTADO ACTUAL =====")
-    print(f"{enemigos[enemigo_index]}: {enemigos_hp[enemigo_index]} HP")
-    for i in range(len(jugadores)):
-        print(f"{jugadores[i]}: {jugadores_hp[i]} HP")
-    print("==========================")
 
 def regenerar_vida(jugadores_hp, vida_inicial):
     print("Regenerando vida de los personajes...")
@@ -146,4 +134,3 @@ def main():
         
 if __name__ == "__main__":
     main()
-
