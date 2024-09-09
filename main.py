@@ -25,8 +25,8 @@ def usar_item(jugador, jugador_hp, hp_enemigo, hp_maximo):
     jugador_hp = min(jugador_hp, hp_maximo)  # Limitar HP al máximo permitido
     return jugador_hp, hp_enemigo, palo_activo
 
-def turno_jugador(jugador, jugador_hp, hp_enemigo, hp_maximo, palo_activo):
-    print(f"===== TURNO DE {jugador} =====")
+def turno_tanque(jugador, jugador_hp, hp_enemigo, hp_maximo):
+    print(f"===== TURNO DE {jugador} (TANQUE) =====")
     print("Acciones disponibles: Atacar - Bloquear - Items")
     accion = input(f"¿Qué hará {jugador}? ").capitalize()
     
@@ -34,13 +34,62 @@ def turno_jugador(jugador, jugador_hp, hp_enemigo, hp_maximo, palo_activo):
         print("Acción inválida.")
         accion = input(f"¿Qué hará {jugador}? ").capitalize()
     
+    palo_activo = False  # Definir la variable aquí
+
     if accion == "Atacar":
         daño = ataque()
         hp_enemigo -= daño
         print(f"{jugador} ataca causando {daño} puntos de daño.")
     
     elif accion == "Bloquear":
-        print(f"{jugador} bloquea el ataque.") 
+        print(f"{jugador} bloquea el ataque.")
+    
+    elif accion == "Items":
+        jugador_hp, hp_enemigo, palo_activo = usar_item(jugador, jugador_hp, hp_enemigo, hp_maximo)
+    
+    return hp_enemigo, jugador_hp, palo_activo
+
+def turno_brujo(jugador, jugador_hp, hp_enemigo, hp_maximo):
+    print(f"===== TURNO DE {jugador} (BRUJO) =====")
+    print("Acciones disponibles: Bola de fuego - Magia negra - Items")
+    accion = input(f"¿Qué hará {jugador}? ").capitalize()
+    
+    while accion not in ["Bola de fuego", "Magia negra", "Items"]:
+        print("Acción inválida.")
+        accion = input(f"¿Qué hará {jugador}? ").capitalize()
+    
+    palo_activo = False  # Definir la variable aquí
+
+    if accion == "Bola de fuego":
+        daño = ataque()
+        hp_enemigo -= daño
+        print(f"{jugador} usa bola de fuego causando {daño} puntos de daño.")
+    
+    elif accion == "Magia negra":
+        daño = ataque()
+        hp_enemigo -= daño + 20
+        print(f"{jugador} usa un hechizo de magia negra causando {daño + 20} puntos de daño.")
+    
+    elif accion == "Items":
+        jugador_hp, hp_enemigo, palo_activo = usar_item(jugador, jugador_hp, hp_enemigo, hp_maximo)
+    
+    return hp_enemigo, jugador_hp, palo_activo
+
+def turno_arquero(jugador, jugador_hp, hp_enemigo, hp_maximo):
+    print(f"===== TURNO DE {jugador} (ARQUERO) =====")
+    print("Acciones disponibles: Flechas - Items")
+    accion = input(f"¿Qué hará {jugador}? ").capitalize()
+    
+    while accion not in ["Flechas", "Items"]:
+        print("Acción inválida.")
+        accion = input(f"¿Qué hará {jugador}? ").capitalize()
+    
+    palo_activo = False  # Definir la variable aquí
+
+    if accion == "Flechas":
+        daño = ataque()
+        hp_enemigo -= daño
+        print(f"{jugador} tira flechas causando {daño} puntos de daño.")
     
     elif accion == "Items":
         jugador_hp, hp_enemigo, palo_activo = usar_item(jugador, jugador_hp, hp_enemigo, hp_maximo)
@@ -110,8 +159,12 @@ def main():
         mostrar_estado(jugadores, jugadores_hp, enemigos, enemigos_hp, enemigo_index)
         
         # Turno del jugador
-        hp_enemigo, jugadores_hp[jugador_index], palo_activo = turno_jugador(jugador_actual, jugadores_hp[jugador_index], hp_enemigo, hp_maximo, palo_activo)
-        enemigos_hp[enemigo_index] = hp_enemigo
+        if jugador_actual == tanque:
+            hp_enemigo, jugadores_hp[jugador_index], palo_activo = turno_tanque(jugador_actual, jugadores_hp[jugador_index], hp_enemigo, hp_maximo)
+        elif jugador_actual == brujo:
+            hp_enemigo, jugadores_hp[jugador_index], palo_activo = turno_brujo(jugador_actual, jugadores_hp[jugador_index], hp_enemigo, hp_maximo)
+        elif jugador_actual == arquero:
+            hp_enemigo, jugadores_hp[jugador_index], palo_activo = turno_arquero(jugador_actual, jugadores_hp[jugador_index], hp_enemigo, hp_maximo)
         
         if enemigos_hp[enemigo_index] <= 0:
             enemigos_hp[enemigo_index] = 0  # Evitar que HP sea negativo
@@ -129,10 +182,9 @@ def main():
         jugador_index = (jugador_index + 1) % len(jugadores)  # Reinicia el turno cuando llega al último jugador
     
     if enemigo_index == len(enemigos) and sum(jugadores_hp) > 0:
-        cad1="¡HAS DERROTADO A TODOS LOS ENEMIGOS!"
-        cad2=cad1.center(50,"=")
-        print(cad2)
+        print("¡Has derrotado a todos los enemigos!")
     else:
         print("¡Has sido derrotado por los enemigos!")
+
 if __name__ == "__main__":
     main()
