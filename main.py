@@ -7,8 +7,9 @@ def ataque():
     return daño
 
 def usar_item(jugador, jugador_hp, hp_enemigo, hp_maximo):
-    print("Items disponibles: Vendaje (60 HP), Poción (100 HP), Palo (-40 HP enemigo)")
+    print("Items disponibles: Vendaje (60 HP), Poción (100 HP), Palo (el enemigo perderá su turno)")
     item = input("¿Qué ítem usarás?: ").capitalize()
+    palo_activo = False
     if item == "Vendaje":
         jugador_hp += 60
         print(f"{jugador} usa Vendaje y recupera 60 puntos de HP.")
@@ -16,16 +17,15 @@ def usar_item(jugador, jugador_hp, hp_enemigo, hp_maximo):
         jugador_hp += 100
         print(f"{jugador} usa Poción y recupera 100 puntos de HP.")
     elif item == "Palo":
-        daño = 40
-        hp_enemigo -= daño
-        print(f"{jugador} usa el Palo y causa {daño} puntos de daño al enemigo.")
+        palo_activo = True
+        print(f"{jugador} usa el Palo y el enemigo perderá su turno.")
     else:
         print("Ítem no válido.")
     
     jugador_hp = min(jugador_hp, hp_maximo)  # Limitar HP al máximo permitido
-    return jugador_hp, hp_enemigo
+    return jugador_hp, hp_enemigo, palo_activo
 
-def turno_jugador(jugador, jugador_hp, hp_enemigo, hp_maximo):
+def turno_jugador(jugador, jugador_hp, hp_enemigo, hp_maximo, palo_activo):
     print(f"===== TURNO DE {jugador} =====")
     print("Acciones disponibles: Atacar - Bloquear - Items")
     accion = input(f"¿Qué hará {jugador}? ").capitalize()
@@ -43,9 +43,9 @@ def turno_jugador(jugador, jugador_hp, hp_enemigo, hp_maximo):
         print(f"{jugador} bloquea el ataque.") 
     
     elif accion == "Items":
-        jugador_hp, hp_enemigo = usar_item(jugador, jugador_hp, hp_enemigo, hp_maximo)
+        jugador_hp, hp_enemigo, palo_activo = usar_item(jugador, jugador_hp, hp_enemigo, hp_maximo)
     
-    return hp_enemigo, jugador_hp
+    return hp_enemigo, jugador_hp, palo_activo
 
 def regenerar_vida(jugadores_hp, vida_inicial):
     print("Regenerando vida de los personajes...")
@@ -53,24 +53,24 @@ def regenerar_vida(jugadores_hp, vida_inicial):
         jugadores_hp[i] = vida_inicial[i]
     print("¡La vida de todos los personajes ha sido regenerada!")
 
-def ataque_enemigo(enemigos, enemigo_index, jugadores, jugadores_hp):
-    enemigo_ataque = random.randint(10, 40)
-    
-    jugadores_vivos = [i for i in range(len(jugadores_hp)) if jugadores_hp[i] > 0]
+def ataque_enemigo(enemigos, enemigo_index, jugadores, jugadores_hp, palo_activo):
+    if palo_activo:
+        print(f"{jugadores[enemigo_index]} lanza el palo y {enemigos[enemigo_index]} se distrae.")
+        palo_activo = False
+    else:
+        enemigo_ataque = random.randint(10, 40)
+        jugadores_vivos = [i for i in range(len(jugadores_hp)) if jugadores_hp[i] > 0]
 
-    if not jugadores_vivos:
-        print("¡No quedan jugadores con vida!")
-        return jugadores_hp
-
-    jugador_atacado_index = random.choice(jugadores_vivos)  # NO VIMOS!!! PERO DEJENLO. Selecciona un elemento al azar en una lista. Queria usar random.randint(0,2) pero no conseguí que no seleccione a un personaje con 0HP
+        if not jugadores_vivos:
+            print("¡No quedan jugadores con vida!")
+        else:
+            jugador_atacado_index = random.choice(jugadores_vivos)  # Selecciona un jugador al azar que esté vivo
+            jugadores_hp[jugador_atacado_index] -= enemigo_ataque
+            jugadores_hp[jugador_atacado_index] = max(0, jugadores_hp[jugador_atacado_index])  # Evitar HP negativo
+            print(f"{enemigos[enemigo_index]} ataca a {jugadores[jugador_atacado_index]} y causa {enemigo_ataque} de daño.")
+            print(f"{jugadores[jugador_atacado_index]}: {jugadores_hp[jugador_atacado_index]} HP")
     
-    jugadores_hp[jugador_atacado_index] -= enemigo_ataque
-    jugadores_hp[jugador_atacado_index] = max(0, jugadores_hp[jugador_atacado_index])  # Evitar HP negativo
-    
-    print(f"{enemigos[enemigo_index]} ataca a {jugadores[jugador_atacado_index]} y causa {enemigo_ataque} de daño.")
-    print(f"{jugadores[jugador_atacado_index]}: {jugadores_hp[jugador_atacado_index]} HP")
-    
-    return jugadores_hp
+    return jugadores_hp, palo_activo
 
 def main():
     print("Nombra a tus personajes. Solo se permiten caracteres alfabéticos.")
@@ -99,6 +99,7 @@ def main():
     print(f"¡Se acerca {enemigos[enemigo_index]} con {enemigos_hp[enemigo_index]} HP!")
     
     jugador_index = 0  # Comienza con el primer jugador
+    palo_activo = False  # Inicializar palo_activo
     
     while enemigo_index < len(enemigos) and sum(jugadores_hp) > 0:
         jugador_actual = jugadores[jugador_index]
@@ -109,7 +110,7 @@ def main():
         mostrar_estado(jugadores, jugadores_hp, enemigos, enemigos_hp, enemigo_index)
         
         # Turno del jugador
-        hp_enemigo, jugadores_hp[jugador_index] = turno_jugador(jugador_actual, jugadores_hp[jugador_index], hp_enemigo, hp_maximo)
+        hp_enemigo, jugadores_hp[jugador_index], palo_activo = turno_jugador(jugador_actual, jugadores_hp[jugador_index], hp_enemigo, hp_maximo, palo_activo)
         enemigos_hp[enemigo_index] = hp_enemigo
         
         if enemigos_hp[enemigo_index] <= 0:
@@ -123,7 +124,7 @@ def main():
             print(f"{enemigos[enemigo_index]}: {enemigos_hp[enemigo_index]} HP")
         
         if enemigo_index < len(enemigos):
-            jugadores_hp = ataque_enemigo(enemigos, enemigo_index, jugadores, jugadores_hp)
+            jugadores_hp, palo_activo = ataque_enemigo(enemigos, enemigo_index, jugadores, jugadores_hp, palo_activo)
         
         jugador_index = (jugador_index + 1) % len(jugadores)  # Reinicia el turno cuando llega al último jugador
     
@@ -131,6 +132,6 @@ def main():
         print("¡Has derrotado a todos los enemigos!")
     else:
         print("¡Has sido derrotado por los enemigos!")
-        
+
 if __name__ == "__main__":
     main()
