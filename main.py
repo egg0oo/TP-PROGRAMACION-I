@@ -129,9 +129,10 @@ def main():
         jugador_index = (jugador_index + 1) % len(jugadores)  # Reinicia el turno cuando llega al último jugador
     
     if enemigo_index == len(enemigos) and sum(jugadores_hp) > 0:
-        print("¡Has derrotado a todos los enemigos!")
+        cad1="¡HAS DERROTADO A TODOS LOS ENEMIGOS!"
+        cad2=cad1.center(50,"=")
+        print(cad2)
     else:
         print("¡Has sido derrotado por los enemigos!")
-
 if __name__ == "__main__":
     main()
