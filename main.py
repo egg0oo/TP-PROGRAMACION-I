@@ -65,7 +65,7 @@ def usar_item(jugador, jugador_hp, hp_enemigo, hp_maximo, items_usados):
         if not items_usados[2]:
             daño = 40
             hp_enemigo -= daño
-            print(f"{jugador} arroja el Palo y le pega al enemigo, causandole {daño} puntos de daño y confundiendolo. El enemigo no atacará durante este turno.")
+            print(f"{jugador} arroja el Palo y le pega al enemigo, causandole {daño} puntos de daño.")
             items_usados[2] = True
         else:
             print("El Palo ya ha sido usado y no se puede usar nuevamente.")
@@ -75,15 +75,17 @@ def usar_item(jugador, jugador_hp, hp_enemigo, hp_maximo, items_usados):
     
     jugador_hp = min(jugador_hp, hp_maximo)
     return jugador_hp, hp_enemigo
+import random
+import random
 
 def bloquear(jugadores, jugadores_hp):
-    resultado_bloqueo = random.randint(1, 2)
+    resultado_bloqueo = random.randint(1, 2) == 2
     
     if resultado_bloqueo == 1:
-        print("¡El bloqueo ha fallado!")
-    else:
         print("¡El bloqueo ha sido un éxito total! Ningún jugador recibe daño este turno.")
-        
+    else:
+        print("¡El bloqueo ha fallado!")
+    
     return resultado_bloqueo
 
 def turno_tanque(jugador, jugador_hp, hp_enemigo, hp_maximo, jugadores, jugadores_hp, items_usados):
@@ -93,7 +95,7 @@ def turno_tanque(jugador, jugador_hp, hp_enemigo, hp_maximo, jugadores, jugadore
     
     while accion not in ["Atacar", "Bloquear", "Items"]:
         print("Acción inválida.")
-        accion = input(f"¿Qué hará {jugador}? ").capitalize()
+        accion = input(f"¿Qué hará {jugador}? ").Capitalize()
     
     bloqueo_exitoso = False
     
