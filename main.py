@@ -1,11 +1,5 @@
-#slicing
-#lista items
-#daño exacto 
-#palo cuenta como daño
-#pasar tema matriz a una funcion 
-
-import random
 from verificacion import verificarnombre
+import random
 
 def tabla(matriz, cf, cc):
     print("                            ")
@@ -22,7 +16,11 @@ def tabla(matriz, cf, cc):
         print()
 
 def ataque():
-    daño = random.randint(60, 100)
+    daño = random.randint(60, 100) 
+    return daño
+
+def magia_negra():
+    daño = random.randint(20, 140)
     return daño
 
 def usar_item(jugador, jugador_hp, hp_enemigo, hp_maximo, items_usados):
@@ -70,14 +68,14 @@ def bloquear(jugadores, jugadores_hp):
     
     return resultado_bloqueo
 
-def turno_tanque(jugador, jugador_hp, hp_enemigo, hp_maximo, jugadores, jugadores_hp, items_usados):
+def turno_tanque(jugador, jugador_hp, hp_enemigo, hp_maximo, jugadores, jugadores_hp, items_usados, daño):
     print(f"===== TURNO DE {jugador} (TANQUE) =====")
     print("Acciones disponibles: Atacar - Bloquear - Items")
     accion = input(f"¿Qué hará {jugador}? ").capitalize()
     
     while accion not in ["Atacar", "Bloquear", "Items"]:
         print("Acción inválida.")
-        accion = input(f"¿Qué hará {jugador}? ").Capitalize()
+        accion = input(f"¿Qué hará {jugador}? ").capitalize()
     
     bloqueo_exitoso = False
     
@@ -92,9 +90,9 @@ def turno_tanque(jugador, jugador_hp, hp_enemigo, hp_maximo, jugadores, jugadore
     elif accion == "Items":
         jugador_hp, hp_enemigo = usar_item(jugador, jugador_hp, hp_enemigo, hp_maximo, items_usados)
     
-    return hp_enemigo, jugador_hp, jugadores_hp, bloqueo_exitoso
+    return hp_enemigo, jugador_hp, jugadores_hp, bloqueo_exitoso, daño
 
-def turno_brujo(jugador, jugador_hp, hp_enemigo, hp_maximo, jugadores, jugadores_hp, items_usados):
+def turno_brujo(jugador, jugador_hp, hp_enemigo, hp_maximo, jugadores_hp, items_usados, daño):
     print(f"===== TURNO DE {jugador} (BRUJO) =====")
     print("Acciones disponibles: Bola de fuego - Magia negra - Items")
     accion = input(f"¿Qué hará {jugador}? ").capitalize()
@@ -109,7 +107,7 @@ def turno_brujo(jugador, jugador_hp, hp_enemigo, hp_maximo, jugadores, jugadores
         print(f"{jugador} usa bola de fuego causando {daño} puntos de daño.")
     
     elif accion == "Magia negra":
-        daño = ataque()
+        daño = magia_negra()
         hp_enemigo -= daño
         print(f"{jugador} usa un hechizo de magia negra causando {daño} puntos de daño.")
     
@@ -118,9 +116,9 @@ def turno_brujo(jugador, jugador_hp, hp_enemigo, hp_maximo, jugadores, jugadores
     
     bloqueo_exitoso = False
     
-    return hp_enemigo, jugador_hp, jugadores_hp, bloqueo_exitoso
+    return hp_enemigo, jugador_hp, jugadores_hp, bloqueo_exitoso, daño
 
-def turno_arquero(jugador, jugador_hp, hp_enemigo, hp_maximo, jugadores, jugadores_hp, items_usados):
+def turno_arquero(jugador, jugador_hp, hp_enemigo, hp_maximo, jugadores_hp, items_usados,daño):
     print(f"===== TURNO DE {jugador} (ARQUERO) =====")
     print("Acciones disponibles: Flechas - Items")
     accion = input(f"¿Qué hará {jugador}? ").capitalize()
@@ -139,7 +137,7 @@ def turno_arquero(jugador, jugador_hp, hp_enemigo, hp_maximo, jugadores, jugador
     
     bloqueo_exitoso = False
     
-    return hp_enemigo, jugador_hp, jugadores_hp, bloqueo_exitoso
+    return hp_enemigo, jugador_hp, jugadores_hp, bloqueo_exitoso, daño
 
 def mostrar_estado(jugadores, jugadores_hp, enemigos, enemigos_hp, enemigo_index):
     print("===== ESTADO ACTUAL =====")
@@ -155,7 +153,7 @@ def regenerar_vida(jugadores_hp, vida_inicial):
     print("¡La vida de todos los personajes ha sido regenerada!")
 
 def ataque_enemigo(enemigos, enemigo_index, jugadores, jugadores_hp, bloqueo_exitoso):
-    enemigo_ataque = random.randint(10, 40)
+    enemigo_ataque = random.randint(20, 50)
     
     jugadores_vivos = [i for i in range(len(jugadores_hp)) if jugadores_hp[i] > 0]
 
@@ -173,6 +171,47 @@ def ataque_enemigo(enemigos, enemigo_index, jugadores, jugadores_hp, bloqueo_exi
     
     return jugadores_hp
 
+def establecer_matriz(matriz, jugador_actual, enemigo_index, daño_total_tanque, daño_total_brujo, daño_total_arquero, daño_total_tanque1, daño_total_brujo1, daño_total_arquero1,  daño_total_tanque2, daño_total_brujo2, daño_total_arquero2, tanque, brujo, arquero):
+    if jugador_actual==tanque and enemigo_index==0:
+        matriz[0][0]=daño_total_tanque
+    elif jugador_actual==brujo and enemigo_index==0:
+        matriz[1][0]=daño_total_brujo
+    elif jugador_actual==arquero and enemigo_index==0:
+        matriz[2][0]=daño_total_arquero
+    elif jugador_actual==tanque and enemigo_index==1:
+        matriz[0][1]=daño_total_tanque1
+    elif jugador_actual==brujo and enemigo_index==1:
+        matriz[1][1]=daño_total_brujo1
+    elif jugador_actual==arquero and enemigo_index==1:
+        matriz[2][1]=daño_total_arquero1
+    elif jugador_actual==tanque and enemigo_index==2:
+        matriz[0][2]=daño_total_tanque2
+    elif jugador_actual==brujo and enemigo_index==2:
+        matriz[1][2]=daño_total_brujo2
+    elif jugador_actual==arquero and enemigo_index==2:
+        matriz[2][2]=daño_total_arquero2
+
+def suma_de_daño(jugador_actual, enemigo_index, daño_total_tanque, daño_total_brujo, daño_total_arquero, daño_total_tanque1, daño_total_brujo1, daño_total_arquero1,  daño_total_tanque2, daño_total_brujo2, daño_total_arquero2, daño_tanque, daño_brujo, daño_arquero, tanque, brujo, arquero):
+    if jugador_actual==tanque and enemigo_index==0:
+            daño_total_tanque+=daño_tanque
+    elif jugador_actual==brujo and enemigo_index==0:
+            daño_total_brujo +=daño_brujo
+    elif jugador_actual==arquero and enemigo_index==0:
+            daño_total_arquero+=daño_arquero
+    elif jugador_actual==tanque and enemigo_index==1:
+            daño_total_tanque1+=daño_tanque
+    elif jugador_actual==brujo and enemigo_index==1:
+            daño_total_brujo1+=daño_brujo
+    elif jugador_actual==arquero and enemigo_index==1:
+            daño_total_arquero1 +=daño_arquero
+    elif jugador_actual==tanque and enemigo_index==2:
+            daño_total_tanque2+=daño_tanque
+    elif jugador_actual==brujo and enemigo_index==2:
+            daño_total_brujo2+=daño_brujo
+    elif jugador_actual==arquero and enemigo_index==2:
+            daño_total_arquero2 +=daño_arquero
+    return daño_total_tanque, daño_total_brujo, daño_total_arquero, daño_total_tanque1, daño_total_brujo1, daño_total_arquero1,  daño_total_tanque2, daño_total_brujo2, daño_total_arquero2
+
 def main():
     cad1 = "EL LEGADO PERDIDO"
     cad2 = cad1.center(29, "=")
@@ -182,11 +221,11 @@ def main():
     print("Aeldenor, se encuentra en ruinas, consumido por una maldición.")
     print("Los descendientes de los corrompidos, herederos de una tragedia ancestral, buscan respuestas en un mundo que ha olvidado su propia condena.")
     print("Al enfrentarse a los enemigos irás descubriendo más de la historia de Aeldenor y el secreto que conlleva la maldición.")
-    
+    print()
     print("Nombra a tus personajes. Solo se permiten caracteres alfabéticos.")
     tanque, brujo, arquero = verificarnombre()
 
-    print(f"Tus personajes son {tanque}, {brujo} y {arquero}", sep="")
+    print(f"Tus personajes son {tanque}, {brujo} y {arquero}")
     
     TANQUE_HP = 350
     BRUJO_HP = 250
@@ -207,6 +246,11 @@ def main():
     
     jugador_index = 0
     
+    daño = 0
+    daño_tanque = 0
+    daño_brujo = 0
+    daño_arquero = 0
+    daño_total= 0
     daño_total_tanque=0
     daño_total_brujo=0
     daño_total_arquero=0
@@ -225,50 +269,17 @@ def main():
         mostrar_estado(jugadores, jugadores_hp, enemigos, enemigos_hp, enemigo_index)
         
         if jugador_actual == tanque:
-            hp_enemigo, jugadores_hp[jugador_index], jugadores_hp, bloqueo_exitoso, daño_tanque = turno_tanque(jugador_actual, jugadores_hp[jugador_index], hp_enemigo, hp_maximo, jugadores, jugadores_hp, items_usados)
+            hp_enemigo, jugadores_hp[jugador_index], jugadores_hp, bloqueo_exitoso, daño_tanque = turno_tanque(jugador_actual, jugadores_hp[jugador_index], hp_enemigo, hp_maximo, jugadores, jugadores_hp, items_usados, daño)
         elif jugador_actual == brujo:
-            hp_enemigo, jugadores_hp[jugador_index], jugadores_hp, bloqueo_exitoso, daño_brujo = turno_brujo(jugador_actual, jugadores_hp[jugador_index], hp_enemigo, hp_maximo, jugadores, jugadores_hp, items_usados)
+            hp_enemigo, jugadores_hp[jugador_index], jugadores_hp, bloqueo_exitoso, daño_brujo = turno_brujo(jugador_actual, jugadores_hp[jugador_index], hp_enemigo, hp_maximo, jugadores_hp, items_usados, daño)
         elif jugador_actual == arquero:
-            hp_enemigo, jugadores_hp[jugador_index], jugadores_hp, bloqueo_exitoso, daño_arquero = turno_arquero(jugador_actual, jugadores_hp[jugador_index], hp_enemigo, hp_maximo, jugadores, jugadores_hp, items_usados)
+            hp_enemigo, jugadores_hp[jugador_index], jugadores_hp, bloqueo_exitoso, daño_arquero = turno_arquero(jugador_actual, jugadores_hp[jugador_index], hp_enemigo, hp_maximo, jugadores_hp, items_usados, daño)
         
         enemigos_hp[enemigo_index] = hp_enemigo
         
-        if jugador_actual==tanque and enemigo_index==0:
-            daño_total_tanque+=daño_tanque
-            matriz[0][0]=daño_total_tanque
-            print(daño_total_tanque)
-        elif jugador_actual==brujo and enemigo_index==0:
-            daño_total_brujo +=daño_brujo
-            matriz[1][0]=daño_total_brujo
-            print(daño_total_brujo)
-        elif jugador_actual==arquero and enemigo_index==0:
-            daño_total_arquero+=daño_arquero
-            matriz[2][0]=daño_total_arquero
-            print(daño_total_arquero)
-        elif jugador_actual==tanque and enemigo_index==1:
-            daño_total_tanque1+=daño_tanque
-            matriz[0][1]=daño_total_tanque1
-            print(daño_total_tanque1)
-        elif jugador_actual==brujo and enemigo_index==1:
-            daño_total_brujo1+=daño_brujo
-            matriz[1][1]=daño_total_brujo1
-            print(daño_total_brujo1)
-        elif jugador_actual==arquero and enemigo_index==1:
-            daño_total_arquero1 +=daño_arquero
-            matriz[2][1]=daño_total_arquero1
-            print(daño_total_arquero1)
-        elif jugador_actual==tanque and enemigo_index==2:
-            daño_total_tanque2+=daño_tanque
-            matriz[0][2]=daño_total_tanque2
-            print(daño_total_tanque2)
-        elif jugador_actual==brujo and enemigo_index==2:
-            daño_total_brujo2+=daño_brujo
-            matriz[1][2]=daño_total_brujo2
-            print(daño_total_brujo2)
-        elif jugador_actual==arquero and enemigo_index==2:
-            daño_total_arquero2 +=daño_arquero
-            matriz[2][2]=daño_total_arquero2
-            print(daño_total_arquero2)
+        daño_total_tanque, daño_total_brujo, daño_total_arquero, daño_total_tanque1, daño_total_brujo1, daño_total_arquero1,  daño_total_tanque2, daño_total_brujo2, daño_total_arquero2=suma_de_daño(jugador_actual, enemigo_index, daño_total_tanque, daño_total_brujo, daño_total_arquero, daño_total_tanque1, daño_total_brujo1, daño_total_arquero1,  daño_total_tanque2, daño_total_brujo2, daño_total_arquero2, daño_tanque, daño_brujo, daño_arquero, tanque, brujo, arquero)
+        
+        establecer_matriz(matriz, jugador_actual, enemigo_index, daño_total_tanque, daño_total_brujo, daño_total_arquero, daño_total_tanque1, daño_total_brujo1, daño_total_arquero1,  daño_total_tanque2, daño_total_brujo2, daño_total_arquero2, tanque, brujo, arquero)
         
         if hp_enemigo <= 0:
             print(f"¡{enemigos[enemigo_index]} ha sido derrotado!")
@@ -294,8 +305,10 @@ def main():
         cad1 = "¡HAS PERDIDO ANTE LOS ENEMIGOS!"
         cad2 = cad1.center(50, "=")
         print(cad2)
-        
-        matrizxd(matriz, len(jugadores), len(enemigos))
+    
+    print()
+    print("Jugador 1= {tanque}, jugador 2= {brujo} y jugador 3= {arquero} ")
+    tabla(matriz, len(jugadores), len(enemigos))
 
 
 if __name__ == "__main__":
