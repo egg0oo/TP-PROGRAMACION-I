@@ -1,64 +1,10 @@
 import random
+
+#arreglado el slicing y ataque
+#preguntar a agus el tema del bloqueo true
+
 from verificacion import verificarnombre
 
-def tabla(matriz, cf, cc):
-    print("                            ")
-    print("Personajes/enemigos", end="")
-    for i in range(1, cc+1):
-        print("%7d" % (i), end=" ")
-    print()
-    
-    for i in range(cf):
-        texto = "Personaje " + str(i+1) + "        "
-        print("%7s" % (texto), end="")
-        for j in range(cc):
-            print("%7s" % (matriz[i][j]), end=" ")
-        print()
-
-def establecer_matriz(matriz, jugador_actual, enemigo_index, daño_total_tanque, daño_total_brujo, daño_total_arquero, daño_total_tanque1, daño_total_brujo1, daño_total_arquero1,  daño_total_tanque2, daño_total_brujo2, daño_total_arquero2, tanque, brujo, arquero):
-    if jugador_actual==tanque and enemigo_index==0:
-        matriz[0][0]=daño_total_tanque
-    elif jugador_actual==brujo and enemigo_index==0:
-        matriz[1][0]=daño_total_brujo
-    elif jugador_actual==arquero and enemigo_index==0:
-        matriz[2][0]=daño_total_arquero
-    elif jugador_actual==tanque and enemigo_index==1:
-        matriz[0][1]=daño_total_tanque1
-    elif jugador_actual==brujo and enemigo_index==1:
-        matriz[1][1]=daño_total_brujo1
-    elif jugador_actual==arquero and enemigo_index==1:
-        matriz[2][1]=daño_total_arquero1
-    elif jugador_actual==tanque and enemigo_index==2:
-        matriz[0][2]=daño_total_tanque2
-    elif jugador_actual==brujo and enemigo_index==2:
-        matriz[1][2]=daño_total_brujo2
-    elif jugador_actual==arquero and enemigo_index==2:
-        matriz[2][2]=daño_total_arquero2
-
-def suma_de_daño(jugador_actual, enemigo_index, daño_total_tanque, daño_total_brujo, daño_total_arquero, daño_total_tanque1, daño_total_brujo1, daño_total_arquero1,  daño_total_tanque2, daño_total_brujo2, daño_total_arquero2, daño_tanque, daño_brujo, daño_arquero, tanque, brujo, arquero):
-    if jugador_actual==tanque and enemigo_index==0:
-            daño_total_tanque+=daño_tanque
-    elif jugador_actual==brujo and enemigo_index==0:
-            daño_total_brujo +=daño_brujo
-    elif jugador_actual==arquero and enemigo_index==0:
-            daño_total_arquero+=daño_arquero
-    elif jugador_actual==tanque and enemigo_index==1:
-            daño_total_tanque1+=daño_tanque
-    elif jugador_actual==brujo and enemigo_index==1:
-            daño_total_brujo1+=daño_brujo
-    elif jugador_actual==arquero and enemigo_index==1:
-            daño_total_arquero1 +=daño_arquero
-    elif jugador_actual==tanque and enemigo_index==2:
-            daño_total_tanque2+=daño_tanque
-    elif jugador_actual==brujo and enemigo_index==2:
-            daño_total_brujo2+=daño_brujo
-    elif jugador_actual==arquero and enemigo_index==2:
-            daño_total_arquero2 +=daño_arquero
-    return daño_total_tanque, daño_total_brujo, daño_total_arquero, daño_total_tanque1, daño_total_brujo1, daño_total_arquero1,  daño_total_tanque2, daño_total_brujo2, daño_total_arquero2
-
-def ataque():
-    daño = random.randint(60, 100) 
-    return daño
 
 def magia_negra():
     daño = random.randint(20, 140)
@@ -75,7 +21,7 @@ def usar_item(jugador, jugador_hp, hp_enemigo, hp_maximo, items_usados, items):
             items_usados[0] = True
         else:
             print("El Vendaje ya ha sido usado y no se puede usar nuevamente.")
-        items[0:1]=[]
+        items[:1]=[]
     
     elif item == "Poción":
         if not items_usados[1]:
@@ -84,7 +30,7 @@ def usar_item(jugador, jugador_hp, hp_enemigo, hp_maximo, items_usados, items):
             items_usados[1] = True
         else:
             print("La Poción ya ha sido usada y no se puede usar nuevamente.")
-        items[1:len(items)-1]=[]
+        items.remove("Poción")
     
     elif item == "Palo":
         if not items_usados[2]:
@@ -94,7 +40,7 @@ def usar_item(jugador, jugador_hp, hp_enemigo, hp_maximo, items_usados, items):
             items_usados[2] = True
         else:
             print("El Palo ya ha sido usado y no se puede usar nuevamente.")
-        items[1:len(items)]=[]
+        items[-1:]=[]
     
     else:
         print("Ítem no válido.")
@@ -103,13 +49,12 @@ def usar_item(jugador, jugador_hp, hp_enemigo, hp_maximo, items_usados, items):
     return jugador_hp, hp_enemigo
 
 def bloquear(jugadores, jugadores_hp):
-    resultado_bloqueo = random.randint(1, 2) == 2
+    resultado_bloqueo = random.randint(1, 2)
     
     if resultado_bloqueo == 1:
         print("¡El bloqueo ha sido un éxito total! Ningún jugador recibe daño este turno.")
     else:
         print("¡El bloqueo ha fallado!")
-    
     return resultado_bloqueo
 
 def turno_tanque(jugador, jugador_hp, hp_enemigo, hp_maximo, jugadores, jugadores_hp, items_usados, daño, items):
@@ -124,7 +69,9 @@ def turno_tanque(jugador, jugador_hp, hp_enemigo, hp_maximo, jugadores, jugadore
     bloqueo_exitoso = False
     
     if accion == "Atacar":
-        daño = ataque()
+        daño = 1
+        ataque = lambda daño: daño*random.randint(60, 100)
+        daño = ataque(daño)
         hp_enemigo -= daño
         print(f"{jugador} ataca causando {daño} puntos de daño.")
     
@@ -146,7 +93,9 @@ def turno_brujo(jugador, jugador_hp, hp_enemigo, hp_maximo, jugadores_hp, items_
         accion = input(f"¿Qué hará {jugador}? ").capitalize()
     
     if accion == "Bola de fuego":
-        daño = ataque()
+        daño = 1
+        ataque = lambda daño: daño*random.randint(60, 100)
+        daño = ataque(daño)
         hp_enemigo -= daño
         print(f"{jugador} usa bola de fuego causando {daño} puntos de daño.")
     
@@ -172,7 +121,9 @@ def turno_arquero(jugador, jugador_hp, hp_enemigo, hp_maximo, jugadores_hp, item
         accion = input(f"¿Qué hará {jugador}? ").capitalize()
     
     if accion == "Flechas":
-        daño = ataque()
+        daño = 1
+        ataque = lambda daño: daño*random.randint(60, 100)
+        daño = ataque(daño)
         hp_enemigo -= daño
         print(f"{jugador} tira flechas causando {daño} puntos de daño.")
     
@@ -242,8 +193,6 @@ def main():
     enemigos_hp = [400, 500, 600]
     enemigo_index = 0
     
-    matriz=[[0]*len(enemigos) for i in range(len(jugadores))]
-    
     items=["Vendaje","Poción","Palo"]
     items_usados = [False, False, False]  # Vendaje, Poción, Palo
     
@@ -264,6 +213,7 @@ def main():
     daño_total_tanque2=0
     daño_total_brujo2=0
     daño_total_arquero2=0
+    resultado_exitoso_cont=0
     
     while enemigo_index < len(enemigos) and sum(jugadores_hp) > 0:
         jugador_actual = jugadores[jugador_index]
@@ -281,9 +231,8 @@ def main():
         
         enemigos_hp[enemigo_index] = hp_enemigo
         
-        daño_total_tanque, daño_total_brujo, daño_total_arquero, daño_total_tanque1, daño_total_brujo1, daño_total_arquero1,  daño_total_tanque2, daño_total_brujo2, daño_total_arquero2=suma_de_daño(jugador_actual, enemigo_index, daño_total_tanque, daño_total_brujo, daño_total_arquero, daño_total_tanque1, daño_total_brujo1, daño_total_arquero1,  daño_total_tanque2, daño_total_brujo2, daño_total_arquero2, daño_tanque, daño_brujo, daño_arquero, tanque, brujo, arquero)
-        
-        establecer_matriz(matriz, jugador_actual, enemigo_index, daño_total_tanque, daño_total_brujo, daño_total_arquero, daño_total_tanque1, daño_total_brujo1, daño_total_arquero1,  daño_total_tanque2, daño_total_brujo2, daño_total_arquero2, tanque, brujo, arquero)
+        if bloqueo_exitoso == 1:
+            resultado_exitoso_cont += 1
         
         if hp_enemigo <= 0:
             print(f"¡{enemigos[enemigo_index]} ha sido derrotado!")
@@ -314,8 +263,8 @@ def main():
         print(cad2)
     
     print()
-    print(f"Jugador 1= {tanque}, jugador 2= {brujo} y jugador 3= {arquero} ")
-    tabla(matriz, len(jugadores), len(enemigos))
     print()
+    
 if __name__ == "__main__":
     main()
+
