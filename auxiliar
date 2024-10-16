@@ -1,0 +1,47 @@
+def nombrar(personaje):
+    nombre = input("Ingresa el nombre: ").upper()
+    if verificar(nombre):
+        return nombre
+    else:
+        print("El nombre es inválido. Intente nuevamente.")
+        nombre = nombrar(personaje)
+        return nombre
+
+def verificar(nombre):
+    if nombre.isalpha() == True:
+        return True
+    else:
+        return False
+    
+def main():
+    cad = "EL LEGADO PERDIDO".center(29, "=")
+    print(cad)
+    
+    print("En las sombras de un imperio muerto, susurran los ecos de un poder olvidado.")
+    print("Aeldenor, se encuentra en ruinas, consumido por una maldición.")
+    print("Los descendientes de los corrompidos, herederos de una tragedia ancestral, buscan respuestas en un mundo que ha olvidado su propia condena.")
+    print("Al enfrentarse a los enemigos irás descubriendo más de la historia de Aeldenor y el secreto que conlleva la maldición.")
+    print()
+    
+    print("Nombra a tus personajes. Solo se permiten caracteres alfabéticos.")
+    
+    tanque = nombrar("TANQUE")
+    print(f"El nombre de tu TANQUE es {tanque}")
+    brujo = nombrar("BRUJO")
+    print(f"El nombre de tu BRUJO es {brujo}")
+    arquero = nombrar("ARQUERO")
+    print(f"El nombre de tu ARQUERO es {arquero}")
+    
+    personajes = {
+        "TANQUE": {"vida": 350,"acciones": ["Atacar","Bloquear","Items"],"daño total": [0,0,0]}, # [0,0,0], cada 0 es un enemigo.
+        "BRUJO": {"vida": 250,"acciones": ["Bola de fuego","Magia negra","Items"],"daño total": [0,0,0]},
+        "ARQUERO": {"vida": 200,"acciones": ["Tirar flechas","Items"],"daño total": [0,0,0]},
+      }
+    
+    enemigos = {
+        "ENEMIGO_X"{"vida": 100}, # No me acuerdo. CONTINUAR.
+        }
+    
+    print(personajes)
+if __name__ == "__main__":
+    main()
