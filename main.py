@@ -18,8 +18,8 @@ def cargar_stats(archivo):
                 "acciones":acciones,
                 "daño total":[0,0,0]
                 }
-            linea = file.readline()
-        file.close
+        linea = file.readline()
+        file.close()
         return personajes
     
 def cargar_stats_enemigos(archivo):
@@ -41,7 +41,7 @@ def cargar_stats_enemigos(archivo):
         linea = file.readline()
         file.close()
         return enemigos
-        
+
 def main():
     cad = "EL LEGADO PERDIDO".center(29, "=")
     print(cad)
