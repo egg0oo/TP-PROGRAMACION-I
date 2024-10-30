@@ -1,24 +1,5 @@
 import random
-
-#No tiene incorporado los modulos
-#hay que hacer el contador de daño correcto
-#revisar si los turnos estan correctos
-#hacer los archivos de salida q agrupen los datos
-#establecer el tema de la lista de items, items usados
-#incorporar las funciones de regenerar vida
-#Hacer todo el sistema de combate que progresa entre los enemigos
-#Lo q esta en la funcion de ataque q involucra las funciones de atacar y seleccionar enemigos no las borre porque maybe nos pueden ayudar mas adelante pero son borrables
-
-def nombrar(personaje):
-    nombre = input("Ingresa el nombre: ").upper()
-    if verificar(nombre):
-        return nombre
-    else:
-        print("El nombre es inválido. Intente nuevamente.")
-        return nombrar(personaje)
-
-def verificar(nombre):
-    return nombre.isalpha()
+from verificacion import nombrar
 
 def cargar_stats(archivo):
     try:
@@ -38,14 +19,13 @@ def cargar_stats(archivo):
                 "acciones":acciones,
                 "daño total":[0,0,0],
                 "Items":0,
-                "muertes":0,
+                "muerte":"NO",
                 "turnos":0,
                 }
         linea = file.readline()
         file.close
         return personajes
     
-
 def cargar_stats_enemigos(archivo):
     try:
         enemigos = {}
@@ -57,15 +37,31 @@ def cargar_stats_enemigos(archivo):
             datos = linea.strip().split(";")
             enemigo = datos[0]
             vida = int(datos[1])
-            ataque = int(datos[2])
+            ataquemin = int(datos[2])
+            ataquemax = int(datos[3])
             enemigos[enemigo] = {
                 "vida": vida,
-                "ataque": ataque,
+                "ataquemin": ataquemin,
+                "ataquemax": ataquemax,
             }
         file.close()
         return enemigos
 
-def usar_item(nombre, jugador_hp, hp_enemigo, hp_maximo, items_usados, items):
+def crear_archivos(personajes):
+    for nombre, stats in personajes.items():
+        try:
+            arch = open(f"{nombre.lower()}.txt", "wt")
+        except IOError:
+            print(f"No se pudo crear el archivo para {nombre}")
+        else:
+            arch.write(f"Vida restante:{stats['vida']}\n")
+            arch.write(f"Daño Total: {stats['daño total']}\n")
+            arch.write(f"Items Usados: {stats['Items']}\n")
+            arch.write(f"Muerte: {stats['muerte']}\n")
+            arch.write(f"Turnos: {stats['turnos']}\n")
+            arch.close()
+                
+def usar_item(nombre, personaje, hp_enemigo, items_usados, items, numeros):
     print("Items disponibles: ", items)
     
     while True:
@@ -74,27 +70,31 @@ def usar_item(nombre, jugador_hp, hp_enemigo, hp_maximo, items_usados, items):
             if item == "VENDAJE":
                 if items_usados[0] == 1:  
                     raise ValueError("El Vendaje ya ha sido usado y no se puede usar nuevamente.")
-                jugador_hp += 60
+                personaje['vida'] += 70
                 print(f"{nombre} usa Vendaje y recupera 60 puntos de HP.")
                 items_usados[0] == 1  
-                items.remove("Vendaje")  
+                items.remove("Vendaje")
+                personaje['Items']+=1
                 break  
             elif item == "POCIÓN" or item== "POCION":
                 if items_usados[1] == 1:
                     raise ValueError("La Poción ya ha sido usado y no se puede usar nuevamente.")                    
-                jugador_hp += 100
+                personaje['vida']+= 120
                 print(f"{nombre} usa Poción y recupera 100 puntos de HP.")
                 items.remove("Poción")
                 items_usados[1]=1
+                personaje['Items']+=1                
                 break  
             elif item == "PALO":
                 if items_usados[2]==1:
                     raise ValueError("El Palo ya ha sido usado y no se puede usar nuevamente.")                    
-                daño = 40
+                daño = 85
+                daño=min(daño,hp_enemigo)
                 hp_enemigo -= daño
                 print(f"{nombre} arroja el Palo y le pega al enemigo, causandole {daño} puntos de daño.")
                 items.remove("Palo")
                 items_usados[2]=1
+                personaje['Items']+=1
                 break      
             elif items == []:
                 print("No quedan más items")
@@ -104,8 +104,15 @@ def usar_item(nombre, jugador_hp, hp_enemigo, hp_maximo, items_usados, items):
         except (IndexError, ValueError) as msg:
             print(msg)
                     
-    jugador_hp = min(jugador_hp, hp_maximo)
+    jugador_hp = min(personaje['vida'], personaje['vidamax'])
     return jugador_hp, hp_enemigo
+
+def atacar(enemigo, numero, PERSONAJE):
+    daño = random.randint(70, 110)
+    daño = min(daño, enemigo['vida'])
+    enemigo['vida'] -= daño
+    PERSONAJE['daño total'][numero] += daño
+    return daño
 
 def bloquear():
     resultado_bloqueo = random.randint(1, 2) == 1
@@ -114,97 +121,124 @@ def bloquear():
         print("¡El bloqueo ha sido un éxito total! Ningún jugador recibe daño este turno.")
     else:
         print("¡El bloqueo ha fallado!")
-    
     return resultado_bloqueo
 
-def mostrar_estado(personajes, enemigos, numero_enemigo):
+def mostrar_estado(personajes, enemigos, enemigo_actual):
     print("\nEstado actual:")
     
     for nombre in personajes:
         print(f"{nombre}: {personajes[nombre]['vida']} HP")
-   
-    enemigo_actual = list(enemigos)[numero_enemigo]
+
     print(f"{enemigo_actual}: {enemigos[enemigo_actual]['vida']} HP\n")
 
-def turno_tanque(TANQUE, daño, enemigos, nombre, items, items_usados,resultado_bloqueo):
+def turno_tanque(TANQUE, daño, enemigos, nombre, items, items_usados, resultado_bloqueo, numero):
     if TANQUE["vida"] > 0:
+        TANQUE['turnos'] += 1
         print(f"===== TURNO DE {nombre} (TANQUE) =====")
         accion = input("Acciones disponibles: Atacar - Bloquear - Items\n").strip().upper()
         while accion not in TANQUE["acciones"]:
             accion = input("Acción no válida. Intenta de nuevo.\n").strip().upper()
         
         if accion == "ATACAR":
-            daño = random.randint(60, 100)
-            enemigos['vida'] -= daño
+            daño = atacar(enemigos, numero, TANQUE)
             print(f"{nombre} ataca causando {daño} puntos de daño.")
-
         elif accion == "BLOQUEAR":
             resultado_bloqueo = bloquear()  
         else:
-            TANQUE['vida'], enemigos['vida'] = usar_item(nombre, TANQUE['vida'], enemigos['vida'], 350, items_usados, items)  
+            TANQUE['vida'], enemigos['vida'] = usar_item(nombre, TANQUE, enemigos['vida'], items_usados, items, numero)
     else:
         print(f"{nombre} está muerto, no puede actuar.")
+        TANQUE['muerte']=="SI"
     return resultado_bloqueo
 
-def turno_brujo(BRUJO, daño, enemigos, nombre, items, items_usados):
+def turno_brujo(BRUJO, daño, enemigos, nombre, items, items_usados, numero):
     if BRUJO["vida"] > 0:
+        BRUJO['turnos'] += 1
         print(f"===== TURNO DE {nombre} (BRUJO) =====")
         accion = input("Acciones disponibles: Bola de fuego - Magia negra - Items\n").strip().upper()
         while accion not in BRUJO["acciones"]:
             accion = input("Acción no válida. Intenta de nuevo.\n").strip().upper()
         
         if accion == "BOLA DE FUEGO":
-            daño = random.randint(60, 100)
-            enemigos['vida'] -= daño
-            print(f"{nombre} ataca causando {daño} puntos de daño.")
-
+            daño = atacar(enemigos, numero, BRUJO)
+            print(f"{nombre} usa bola de fuego causando {daño} puntos de daño.")
         elif accion == "MAGIA NEGRA":
-            daño = random.randint(40, 120)
+            daño = random.randint(50, 150)
+            daño = min(daño, enemigos['vida'])
             enemigos['vida'] -= daño
-            print(f"{nombre} ataca causando {daño} puntos de daño.")  
+            BRUJO['daño total'][numero] += daño
+            print(f"{nombre} usa un hechizo de magia negra causando {daño} puntos de daño.")  
         else:
-            BRUJO['vida'], enemigos['vida'] = usar_item(nombre, BRUJO['vida'], enemigos['vida'], 350, items_usados, items)  
+            BRUJO['vida'], enemigos['vida'] = usar_item(nombre, BRUJO, enemigos['vida'], items_usados, items, numero)  
     else:
         print(f"{nombre} está muerto, no puede actuar.")
+        BRUJO['muerte']=="SI"
 
-def turno_arquero(ARQUERO, daño, enemigos, nombre, items, items_usados):
+def turno_arquero(ARQUERO, daño, enemigos, nombre, items, items_usados, numero):
     if ARQUERO["vida"] > 0:
+        ARQUERO['turnos'] += 1
         print(f"===== TURNO DE {nombre} (ARQUERO) =====")
         accion = input("Acciones disponibles: Tirar flechas - Items\n").strip().upper()
         while accion not in ARQUERO["acciones"]:
             accion = input("Acción no válida. Intenta de nuevo.\n").strip().upper()
         
         if accion == "TIRAR FLECHAS":
-            daño = random.randint(60, 100)
-            enemigos['vida'] -= daño
-            print(f"{nombre} ataca causando {daño} puntos de daño.")
+            daño = atacar(enemigos, numero, ARQUERO)
+            print(f"{nombre} tira flechas causando {daño} puntos de daño.")
         else:
-            ARQUERO['vida'], enemigos['vida'] = usar_item(nombre, ARQUERO['vida'], enemigos['vida'], 350, items_usados, items)  
+            ARQUERO['vida'], enemigos['vida'] = usar_item(nombre, ARQUERO, enemigos['vida'], items_usados, items, numero)  
     else:
         print(f"{nombre} está muerto, no puede actuar.")
+        ARQUERO['muerte']=="SI"
 
-def ataque_enemigo(ENEMIGO, personajes, resultado_bloqueo, nombres, numero_enemigo):
-    enemigo_ataque = random.randint(20, 50)
-    enemigos_nombre = list(ENEMIGO.keys())
-    enemigo_actual = enemigos_nombre[numero_enemigo]
-
+def muerte(personajes, enemigos):
     jugadores_vivos = {}
     for nombre in personajes:
         if personajes[nombre]['vida'] > 0:
             jugadores_vivos[nombre] = personajes[nombre]
+        else:
+            personajes[nombre]['muerte'] = "SI"
 
     if not jugadores_vivos:
         print("¡No quedan jugadores con vida!")
-        return
+    return jugadores_vivos
 
+def ataque_enemigo(ENEMIGO, personajes, resultado_bloqueo, nombres, enemigo_actual, jugadores_vivos):
     if not resultado_bloqueo:
-        resultado_bloqueo = False
-        jugador_atacado = random.choice(list(jugadores_vivos.keys()))
-        personajes[jugador_atacado]['vida'] -= enemigo_ataque
+        jugador_atacado = random.choice(list(jugadores_vivos))
+        daño=random.randint(ENEMIGO['ataquemin'], ENEMIGO['ataquemax'])
+        personajes[jugador_atacado]['vida'] -= daño
         personajes[jugador_atacado]['vida'] = max(0, personajes[jugador_atacado]['vida'])
         
-        print(f"{enemigo_actual} ataca a {nombres[jugador_atacado]} y causa {enemigo_ataque} de daño.")
+        print(f"{enemigo_actual} ataca a {nombres[jugador_atacado]} y causa {daño} de daño.")
         print(f"{nombres[jugador_atacado]}: {personajes[jugador_atacado]['vida']} HP")
+
+def cambio_enemigo(enemigos, enemigo_actual, numero_enemigo):
+    if enemigos[enemigo_actual]['vida'] <= 0: 
+        print(f"{enemigo_actual} ha sido derrotado.")
+        numero_enemigo += 1
+        if numero_enemigo == 1:
+            print()
+            print("Matarme no cambiará nada, forastero. La maldición ya corre por tus venas, como lo hizo con nosotros. Caerás igual que los que te precedieron.")
+            enemigo_actual = list(enemigos)[numero_enemigo]
+        elif numero_enemigo == 2:
+            print()
+            print("Has luchado bien, pero incluso si logras destruirme, no serás más que una sombra, como lo es este imperio. La oscuridad de Aeldenor ya ha reclamado tu alma, y yo seré el testigo de tu caída.")
+            enemigo_actual = list(enemigos)[numero_enemigo]
+        else:
+            numero_enemigo = 2
+    return enemigo_actual, numero_enemigo
+
+def finalizacion(personajes, enemigos):
+    if personajes['TANQUE']['vida'] == 0 and personajes['BRUJO']['vida'] == 0 and personajes['ARQUERO']['vida'] == 0:
+        print()
+        print("Has sido derrotado!!!. Inicia de vuelta el programa e inténtalo de nuevo.")
+        return True    
+    if enemigos['ENEMIGO_Z']['vida'] <= 0:
+        print()
+        print("¡Todos los enemigos han sido derrotados!")
+        return True
+    return False
 
 def main():
     cad = "EL LEGADO PERDIDO".center(29, "=")
@@ -237,55 +271,60 @@ def main():
     personajes = cargar_stats("stats.text")
     enemigos = cargar_stats_enemigos("stats_enemigos.text")
     
-    print(personajes)
-    
     daño = 0
-    numero_enemigo = 0  # Indice del enemigo actual
+    numero_enemigo = 0  # Índice del enemigo actual
+    enemigo_actual = list(enemigos)[numero_enemigo]
+    resultado_bloqueo=False
+    mostrar_estado(personajes, enemigos, enemigo_actual)
+    jugadores_vivos=personajes.copy()
+    while True:
+        resultado_bloqueo = turno_tanque(personajes['TANQUE'], daño, enemigos[enemigo_actual], nombres['TANQUE'], items, items_usados, resultado_bloqueo, numero_enemigo)
+            
+        if enemigos[enemigo_actual]['vida'] > 0:
+            ataque_enemigo(enemigos[enemigo_actual], personajes, resultado_bloqueo, nombres, enemigo_actual, jugadores_vivos)
 
-    while numero_enemigo < len(enemigos):
-        enemigo_actual = list(enemigos.keys())[numero_enemigo]
+        resultado_bloqueo = False
+         
+        jugadores_vivos=muerte(personajes,enemigos)
         
-        if enemigos[enemigo_actual]['vida'] <= 0: # 1* PONER TODO ESTE IF ELSE EN UNA FUNCION
-            print(f"{enemigo_actual} ha sido derrotado.")
-            numero_enemigo += 1
-            continuar = False  # El enemigo ha sido derrotado
-        else:
-            continuar = True
-
-        if continuar:
-            resultado_bloqueo=False
-            mostrar_estado(personajes, enemigos, numero_enemigo)
-            resultado_bloqueo=turno_tanque(personajes['TANQUE'], daño, enemigos[enemigo_actual], nombres['TANQUE'], items, items_usados,resultado_bloqueo)
+        enemigo_actual, numero_enemigo = cambio_enemigo(enemigos, enemigo_actual, numero_enemigo)
             
-            if enemigos[enemigo_actual]['vida'] > 0:
-                ataque_enemigo(enemigos, personajes, resultado_bloqueo, nombres, numero_enemigo)
-            resultado_bloqueo=False
+        mostrar_estado(personajes, enemigos, enemigo_actual)
             
-            mostrar_estado(personajes, enemigos, numero_enemigo)
-            turno_brujo(personajes['BRUJO'], daño, enemigos[enemigo_actual], nombres['BRUJO'], items, items_usados)
-
-            if enemigos[enemigo_actual]['vida'] > 0:
-                ataque_enemigo(enemigos, personajes, resultado_bloqueo, nombres, numero_enemigo)
-
-            if enemigos[enemigo_actual]['vida'] <= 0: # 1* PONER TODO ESTE IF ELSE EN UNA FUNCION
-                print(f"{enemigo_actual} ha sido derrotado.")
-                numero_enemigo += 1
-                continuar = False
-            else:
-                continuar = True
-
-        if continuar:
-            mostrar_estado(personajes, enemigos, numero_enemigo)
-            turno_arquero(personajes['ARQUERO'], daño, enemigos[enemigo_actual], nombres['ARQUERO'], items, items_usados)
+        if finalizacion(personajes,enemigos):
+            break
             
-            if enemigos[enemigo_actual]['vida'] > 0:
-                ataque_enemigo(enemigos, personajes, resultado_bloqueo, nombres, numero_enemigo)
+        turno_brujo(personajes['BRUJO'], daño, enemigos[enemigo_actual], nombres['BRUJO'], items, items_usados, numero_enemigo)
 
-            if enemigos[enemigo_actual]['vida'] <= 0:
-                print(f"{enemigo_actual} ha sido derrotado.")
-                numero_enemigo += 1
+        if enemigos[enemigo_actual]['vida'] > 0:
+            ataque_enemigo(enemigos[enemigo_actual], personajes, resultado_bloqueo, nombres, enemigo_actual, jugadores_vivos)
+        
+        jugadores_vivos=muerte(personajes,enemigos)
+        
+        enemigo_actual, numero_enemigo = cambio_enemigo(enemigos, enemigo_actual, numero_enemigo)
 
-    print("¡Todos los enemigos han sido derrotados!")
+        mostrar_estado(personajes, enemigos, enemigo_actual)
+            
+        if finalizacion(personajes,enemigos):
+            break
+            
+        turno_arquero(personajes['ARQUERO'], daño, enemigos[enemigo_actual], nombres['ARQUERO'], items, items_usados, numero_enemigo)
+            
+        if enemigos[enemigo_actual]['vida'] > 0:
+            ataque_enemigo(enemigos[enemigo_actual], personajes, resultado_bloqueo, nombres, enemigo_actual, jugadores_vivos)
+            
+        enemigo_actual, numero_enemigo = cambio_enemigo(enemigos, enemigo_actual, numero_enemigo)
+        
+        mostrar_estado(personajes, enemigos, enemigo_actual)
+        
+        jugadores_vivos=muerte(personajes,enemigos)
+        
+        if finalizacion(personajes,enemigos):
+            break
+    
+    print(personajes)
+    print(enemigos)
+    crear_archivos(personajes)
 
 if __name__ == "__main__":
     main()
