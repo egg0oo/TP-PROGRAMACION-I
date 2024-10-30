@@ -1,5 +1,6 @@
 import random
 from verificacion import nombrar
+from estado import mostrar_estado
 
 def cargar_stats(archivo):
     try:
@@ -122,15 +123,7 @@ def bloquear():
     else:
         print("¡El bloqueo ha fallado!")
     return resultado_bloqueo
-
-def mostrar_estado(personajes, enemigos, enemigo_actual):
-    print("\nEstado actual:")
     
-    for nombre in personajes:
-        print(f"{nombre}: {personajes[nombre]['vida']} HP")
-
-    print(f"{enemigo_actual}: {enemigos[enemigo_actual]['vida']} HP\n")
-
 def turno_tanque(TANQUE, daño, enemigos, nombre, items, items_usados, resultado_bloqueo, numero):
     if TANQUE["vida"] > 0:
         TANQUE['turnos'] += 1
@@ -237,6 +230,7 @@ def finalizacion(personajes, enemigos):
     if enemigos['ENEMIGO_Z']['vida'] <= 0:
         print()
         print("¡Todos los enemigos han sido derrotados!")
+        print("Has ganado!!! Felicidades.")
         return True
     return False
 
@@ -277,6 +271,7 @@ def main():
     resultado_bloqueo=False
     mostrar_estado(personajes, enemigos, enemigo_actual)
     jugadores_vivos=personajes.copy()
+
     while True:
         resultado_bloqueo = turno_tanque(personajes['TANQUE'], daño, enemigos[enemigo_actual], nombres['TANQUE'], items, items_usados, resultado_bloqueo, numero_enemigo)
             
@@ -322,8 +317,6 @@ def main():
         if finalizacion(personajes,enemigos):
             break
     
-    print(personajes)
-    print(enemigos)
     crear_archivos(personajes)
 
 if __name__ == "__main__":
