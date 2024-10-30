@@ -1,12 +1,8 @@
 def nombrar(personaje):
     nombre = input("Ingresa el nombre: ").upper()
-    if verificar(nombre) == False:
-        print("El nombre es inválido. Intente nuevamente.")
-        nombre = nombrar(personaje)
-    return nombre
-
-def verificar(nombre):
-    if nombre.isalpha() == True:
-        return True
+    verificar = lambda nombre: nombre.isalpha()
+    if verificar(nombre):
+        return nombre
     else:
-        return False
+        print("El nombre es inválido. Intente nuevamente.")
+        return nombrar(personaje)
