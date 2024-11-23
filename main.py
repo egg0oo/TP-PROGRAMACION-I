@@ -342,4 +342,4 @@ def main():
     crear_archivos(personajes)
 
 if __name__ == "__main__":
-    main()l
+    main()
