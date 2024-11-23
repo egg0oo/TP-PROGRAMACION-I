@@ -20,11 +20,10 @@ def cargar_stats(archivo):
                 "acciones":acciones,
                 "daño total":[0,0,0],
                 "Items":0,
-                "muerte":"NO",
+                "muerte":0,
                 "turnos":0,
                 }
-        linea = file.readline()
-        file.close
+        file.close()
         return personajes
     
 def cargar_stats_enemigos(archivo):
@@ -49,17 +48,35 @@ def cargar_stats_enemigos(archivo):
         return enemigos
 
 def crear_archivos(personajes):
-    for nombre, stats in personajes.items():
+    l=list(personajes["TANQUE"].keys())
+    for i in range(2):
+        del personajes["TANQUE"][l[i+1]]
+        del personajes["BRUJO"][l[i+1]]
+        del personajes["ARQUERO"][l[i+1]]
+    l=list(personajes["TANQUE"].keys())
+    for stats in l:
+        if stats == "daño total":
+            for i in range(len(personajes['TANQUE'][stats])):
+                try:
+                    
+                    arch = open(f"{stats.lower()} enemigo {i}.csv", "wt")
+                except IOError:
+                    print(f"No se pudo crear el archivo para {stats}")
+                else:
+                    arch.write("TANQUE;"+str(personajes['TANQUE'][stats][i])+"\n")
+                    arch.write("BRUJO;"+str(personajes['BRUJO'][stats][i])+"\n")
+                    arch.write("ARQUERO;"+str(personajes['ARQUERO'][stats][i])+"\n")
+                    arch.close()
+            continue
         try:
-            arch = open(f"{nombre.lower()}.txt", "wt")
+            arch = open(f"{stats.lower()}.csv", "wt")
         except IOError:
-            print(f"No se pudo crear el archivo para {nombre}")
+            print(f"No se pudo crear el archivo para {stats}")
         else:
-            arch.write(f"Vida restante:{stats['vida']}\n")
-            arch.write(f"Daño Total: {stats['daño total']}\n")
-            arch.write(f"Items Usados: {stats['Items']}\n")
-            arch.write(f"Muerte: {stats['muerte']}\n")
-            arch.write(f"Turnos: {stats['turnos']}\n")
+            
+            arch.write("TANQUE;"+str(personajes['TANQUE'][stats])+"\n")
+            arch.write("BRUJO;"+str(personajes['BRUJO'][stats])+"\n")
+            arch.write("ARQUERO;"+str(personajes['ARQUERO'][stats])+"\n")
             arch.close()
                 
 def usar_item(nombre, personaje, hp_enemigo, items_usados, items, numeros):
@@ -88,15 +105,16 @@ def usar_item(nombre, personaje, hp_enemigo, items_usados, items, numeros):
                 break  
             elif item == "PALO":
                 if items_usados[2]==1:
-                    raise ValueError("El Palo ya ha sido usado y no se puede usar nuevamente.")                    
+                    raise ValueError("El Palo ya ha sido usado y no se puede usar nuevamente.")
                 daño = 85
                 daño=min(daño,hp_enemigo)
                 hp_enemigo -= daño
+                personaje['daño total'][numeros] += daño
                 print(f"{nombre} arroja el Palo y le pega al enemigo, causandole {daño} puntos de daño.")
                 items.remove("Palo")
                 items_usados[2]=1
                 personaje['Items']+=1
-                break      
+                break
             elif items == []:
                 print("No quedan más items")
                 break
@@ -141,7 +159,7 @@ def turno_tanque(TANQUE, daño, enemigos, nombre, items, items_usados, resultado
             TANQUE['vida'], enemigos['vida'] = usar_item(nombre, TANQUE, enemigos['vida'], items_usados, items, numero)
     else:
         print(f"{nombre} está muerto, no puede actuar.")
-        TANQUE['muerte']=="SI"
+        TANQUE['muerte']==1
     return resultado_bloqueo
 
 def turno_brujo(BRUJO, daño, enemigos, nombre, items, items_usados, numero):
@@ -165,7 +183,7 @@ def turno_brujo(BRUJO, daño, enemigos, nombre, items, items_usados, numero):
             BRUJO['vida'], enemigos['vida'] = usar_item(nombre, BRUJO, enemigos['vida'], items_usados, items, numero)  
     else:
         print(f"{nombre} está muerto, no puede actuar.")
-        BRUJO['muerte']=="SI"
+        BRUJO['muerte']==1
 
 def turno_arquero(ARQUERO, daño, enemigos, nombre, items, items_usados, numero):
     if ARQUERO["vida"] > 0:
@@ -182,7 +200,7 @@ def turno_arquero(ARQUERO, daño, enemigos, nombre, items, items_usados, numero)
             ARQUERO['vida'], enemigos['vida'] = usar_item(nombre, ARQUERO, enemigos['vida'], items_usados, items, numero)  
     else:
         print(f"{nombre} está muerto, no puede actuar.")
-        ARQUERO['muerte']=="SI"
+        ARQUERO['muerte']==1
 
 def muerte(personajes, enemigos):
     jugadores_vivos = {}
@@ -190,7 +208,7 @@ def muerte(personajes, enemigos):
         if personajes[nombre]['vida'] > 0:
             jugadores_vivos[nombre] = personajes[nombre]
         else:
-            personajes[nombre]['muerte'] = "SI"
+            personajes[nombre]['muerte'] = 1
 
     if not jugadores_vivos:
         print("¡No quedan jugadores con vida!")
@@ -262,8 +280,8 @@ def main():
     items = ["Vendaje", "Poción", "Palo"]
     items_usados = [0, 0, 0]  # Vendaje, Poción, Palo
     
-    personajes = cargar_stats("stats.text")
-    enemigos = cargar_stats_enemigos("stats_enemigos.text")
+    personajes = cargar_stats("stats.txt")
+    enemigos = cargar_stats_enemigos("stats_enemigos.txt")
     
     daño = 0
     numero_enemigo = 0  # Índice del enemigo actual
@@ -271,6 +289,10 @@ def main():
     resultado_bloqueo=False
     mostrar_estado(personajes, enemigos, enemigo_actual)
     jugadores_vivos=personajes.copy()
+    print("En el combate el tanque y el brujo tienen 3 opciones: el ataque normal, una habilidad y los items pero se agotan al usarlos")
+    print("El arquero solamente puede hacer daño con sus flechas y usar los items")
+    print("Los items que utiliza el equipo son: Vendaje (recupera 70 de vida), Poción (recupera 120 de vida) y palo (inflige 85 puntos de daño)")
+    print()
 
     while True:
         resultado_bloqueo = turno_tanque(personajes['TANQUE'], daño, enemigos[enemigo_actual], nombres['TANQUE'], items, items_usados, resultado_bloqueo, numero_enemigo)
