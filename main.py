@@ -280,8 +280,8 @@ def main():
     items = ["Vendaje", "Poción", "Palo"]
     items_usados = [0, 0, 0]  # Vendaje, Poción, Palo
     
-    personajes = cargar_stats("stats.txt")
-    enemigos = cargar_stats_enemigos("stats_enemigos.txt")
+    personajes = cargar_stats("stats.text")
+    enemigos = cargar_stats_enemigos("stats_enemigos.text")
     
     daño = 0
     numero_enemigo = 0  # Índice del enemigo actual
